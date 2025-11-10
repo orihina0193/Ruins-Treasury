@@ -1,0 +1,62 @@
+// 入力値を取得（順番に注意）
+let targetExplorations = parseInt(args.plainTexts[0]); // 希望探索回数
+let ownedAPItems = parseInt(args.plainTexts[1]);       // 所持APアイテム数
+let ownedShovels = parseInt(args.plainTexts[2]);       // 所持スコップ数
+let shovelPurchaseCount = parseInt(args.plainTexts[3]); // ダイヤで購入したいスコップ数
+
+// 安全な範囲に制限
+shovelPurchaseCount = Math.max(0, Math.min(10, shovelPurchaseCount));
+
+// 必要スコップ数
+let neededShovels = Math.max(0, targetExplorations - ownedShovels);
+
+// 実際に購入できるスコップ数（必要数と希望数の小さい方）
+let buyableShovels = Math.min(shovelPurchaseCount, neededShovels);
+
+// 残りはドロップで作成
+let craftableShovels = Math.max(0, neededShovels - buyableShovels);
+
+// ドロップ・訪問・AP計算
+let neededDrops = craftableShovels * 10;
+let neededVisits = Math.ceil(neededDrops / 2);
+let neededAP = neededVisits * 20;
+
+// 所持APと不足分
+let ownedAP = ownedAPItems * 120;
+let lackingAP = Math.max(0, neededAP - ownedAP);
+let extraAPItems = Math.ceil(lackingAP / 120);
+
+// ダイヤ計算
+let diamondForShovels = buyableShovels * 1000;
+let diamondForAP = extraAPItems * 1500;
+let totalDiamond = diamondForShovels + diamondForAP;
+
+// Markdown形式でGitHub向けに整形
+let result = `
+# 💰 合計ダイヤ消費: **${totalDiamond}ダイヤ**
+
+---
+
+## 🔍 内訳
+
+- **スコップ購入**: ${diamondForShovels}ダイヤ（${buyableShovels}個、希望: ${shovelPurchaseCount}個）
+- **AP購入**: ${diamondForAP}ダイヤ（アイテム ${extraAPItems}個）
+
+---
+
+## 📊 詳細
+
+| 項目 | 値 |
+|------|----|
+| 希望探索回数 | ${targetExplorations} |
+| 所持スコップ | ${ownedShovels} |
+| 必要スコップ | ${neededShovels} |
+| 作成スコップ | ${craftableShovels}個 |
+| 必要ドロップ | ${neededDrops}個 |
+| 訪問回数 | ${neededVisits}回 |
+| 必要AP | ${neededAP}AP |
+| 所持AP | ${ownedAP}AP（アイテム ${ownedAPItems}個） |
+| 不足AP | ${lackingAP}AP |
+`;
+
+Script.setShortcutOutput(result);
