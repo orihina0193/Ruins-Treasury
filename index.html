@@ -2,40 +2,125 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>廃墟の宝探し計算ツール</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; line-height: 1.6; max-width: 600px; margin: auto; }
-    h1, h2 { color: #333; }
-    input { width: 100%; padding: 0.5em; margin-bottom: 1em; }
-    button { padding: 0.5em 1em; font-size: 1em; }
-    .result { margin-top: 2em; white-space: pre-wrap; background: #f9f9f9; padding: 1em; border-radius: 8px; border: 1px solid #ccc; }
+    body {
+      font-family: sans-serif;
+      padding: 1.5em;
+      line-height: 1.6;
+      max-width: 600px;
+      margin: auto;
+      background: #fefefe;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin-bottom: 1em;
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 0.6em;
+      font-size: 1em;
+      margin-top: 0.3em;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1.5em;
+      padding: 0.8em 1.2em;
+      font-size: 1em;
+      width: 100%;
+      background: #007aff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+    .result {
+      margin-top: 2em;
+      white-space: pre-wrap;
+      background: #f9f9f9;
+      padding: 1em;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 0.95em;
+    }
   </style>
 </head>
 <body>
   <h1>🧮 廃墟の宝探し計算ツール</h1>
 
   <label>希望探索回数</label>
-  <input type="number" id="explorations">
+  <input type="number" id="explorations" placeholder="例: 400">
 
   <label>所持APアイテム数</label>
-  <input type="number" id="apItems">
+  <input type="number" id="apItems" placeholder="例: 20">
 
   <label>所持スコップ数</label>
-  <input type="number" id="ownedShovels">
+  <input type="number" id="ownedShovels" placeholder="例: 25">
 
   <label>購入したいスコップ数（最大10）</label>
-  <input type="number" id="shovelPurchase">
+  <input type="number" id="shovelPurchase" placeholder="例: 5">
 
-  <button onclick="calculate()">計算する</button>
+  <button id="calcBtn">計算する</button>
 
   <div class="result" id="output"></div>
 
   <script>
-    function calculate() {
-      const targetExplorations = parseInt(document.getElementById('explorations').value);
-      const ownedAPItems = parseInt(document.getElementById('apItems').value);
-      const ownedShovels = parseInt(document.getElementById('ownedShovels').value);
-      let shovelPurchaseCount = parseInt(document.getElementById('shovelPurchase').value);
+    document.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("calcBtn").addEventListener("click", () => {
+        const get = id => parseInt(document.getElementById(id).value) || 0;
 
-      shovelPurchaseCount = Math.max(0, Math.min(10, shovelPurchaseCount));
-      const neededShovels =
+        const targetExplorations = get("explorations");
+        const ownedAPItems = get("apItems");
+        const ownedShovels = get("ownedShovels");
+        let shovelPurchaseCount = get("shovelPurchase");
+
+        shovelPurchaseCount = Math.max(0, Math.min(10, shovelPurchaseCount));
+        const neededShovels = Math.max(0, targetExplorations - ownedShovels);
+        const buyableShovels = Math.min(shovelPurchaseCount, neededShovels);
+        const craftableShovels = Math.max(0, neededShovels - buyableShovels);
+
+        const neededDrops = craftableShovels * 10;
+        const neededVisits = Math.ceil(neededDrops / 2);
+        const neededAP = neededVisits * 20;
+
+        const ownedAP = ownedAPItems * 120;
+        const lackingAP = Math.max(0, neededAP - ownedAP);
+        const extraAPItems = Math.ceil(lackingAP / 120);
+
+        const diamondForShovels = buyableShovels * 1000;
+        const diamondForAP = extraAPItems * 1500;
+        const totalDiamond = diamondForShovels + diamondForAP;
+
+        const result = `
+💰 合計ダイヤ消費: ${totalDiamond}ダイヤ
+
+---
+
+🔍 内訳
+・スコップ購入: ${diamondForShovels}ダイヤ（${buyableShovels}個、希望: ${shovelPurchaseCount}個）
+・AP購入: ${diamondForAP}ダイヤ（アイテム ${extraAPItems}個）
+
+---
+
+📊 詳細
+・希望探索回数: ${targetExplorations}
+・所持スコップ: ${ownedShovels}
+・必要スコップ: ${neededShovels}
+・作成スコップ: ${craftableShovels}個
+・必要ドロップ: ${neededDrops}個
+・訪問回数: ${neededVisits}回
+・必要AP: ${neededAP}AP
+・所持AP: ${ownedAP}AP（アイテム ${ownedAPItems}個）
+・不足AP: ${lackingAP}AP
+        `;
+        document.getElementById("output").textContent = result;
+      });
+    });
+  </script>
+</body>
+</html>
